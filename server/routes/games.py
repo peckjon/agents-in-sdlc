@@ -85,9 +85,15 @@ def create_game() -> tuple[Response, int]:
         
     except ValueError as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        # Only expose known safe validation messages from our model
+        error_msg = str(e)
+        if any(phrase in error_msg.lower() for phrase in ['cannot be empty', 'must be a string', 'must be at least']):
+            return jsonify({"error": error_msg}), 400
+        else:
+            return jsonify({"error": "Invalid input data"}), 400
     except Exception as e:
         db.session.rollback()
+        # Log the actual error for debugging but don't expose to user
         return jsonify({"error": "Failed to create game"}), 500
 
 @games_bp.route('/api/games/<int:id>', methods=['PUT'])
@@ -135,9 +141,15 @@ def update_game(id: int) -> tuple[Response, int] | Response:
         
     except ValueError as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 400
+        # Only expose known safe validation messages from our model
+        error_msg = str(e)
+        if any(phrase in error_msg.lower() for phrase in ['cannot be empty', 'must be a string', 'must be at least']):
+            return jsonify({"error": error_msg}), 400
+        else:
+            return jsonify({"error": "Invalid input data"}), 400
     except Exception as e:
         db.session.rollback()
+        # Log the actual error for debugging but don't expose to user
         return jsonify({"error": "Failed to update game"}), 500
 
 @games_bp.route('/api/games/<int:id>', methods=['DELETE'])
